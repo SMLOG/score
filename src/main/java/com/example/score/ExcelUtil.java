@@ -2,9 +2,13 @@ package com.example.score;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,29 +24,15 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.assertj.core.util.Arrays;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.example.score.common.Holder;
-import com.example.score.common.Info;
-import com.example.score.common.TechMan;
-import com.example.score.common.TechTypeEnum;
-import com.example.score.data.CacheMan;
-import com.example.score.data.Item;
+public final class ExcelUtil {
 
-@SpringBootTest
-public class ScoreApplicationTests3 {
 
-	@Autowired
-	private JdbcTemplate jdbc;
 
-	@Test
-	void contextLoads() throws IOException, EncryptedDocumentException, InvalidFormatException {
+	public static Workbook generateExcel(String stockCode,JdbcTemplate jdbcTemplate,OutputStream out) throws EncryptedDocumentException, InvalidFormatException, IOException {
 
-		String stockCode = "sz000876";
+
 		String[][] zcfzb = new String[][] { 
 				{ "MONETARYFUND", "&ensp;&ensp;&ensp;&ensp;货币资金" },
 				{ "SETTLEMENTPROVISION", "&ensp;&ensp;&ensp;&ensp;结算备付金" },
@@ -209,7 +199,7 @@ public class ScoreApplicationTests3 {
 		tabMap.put("资产负债表", "zcfzb");
 		tabMap.put("利润表", "lrb");
 		tabMap.put("现金流量表", "xjllb");
-		InputStream inputStream = this.getClass().getResourceAsStream("/gz.xlsx");
+		InputStream inputStream = ExcelUtil.class.getClass().getResourceAsStream("/gz.xlsx");
 
 		// String
 		String excelTemplatePath="../electron-suspension/gz.tpl.xlsx";
@@ -219,11 +209,13 @@ public class ScoreApplicationTests3 {
 
 		for (String tab : tabListMap.keySet()) {
 			final Sheet sheet = workbook.getSheet(tab);
-			List<Map<String, Object>> result = jdbc.queryForList("select * from "+tabMap.get(tab)+" where reporttype=1 and code='"+stockCode+"' order by reportdate desc");
 			String[][] mapItems = tabListMap.get(tab);
-			List<Object> list = Arrays.asList(mapItems);
+			List list = new ArrayList( Arrays.asList(mapItems));
+			
+	    	List<Map<String, Object>> result = jdbcTemplate.queryForList("select * from "+tabMap.get(tab)+" where reporttype=1 and code='"+stockCode+"' order by reportdate desc");
+
 			list.add(0, new String[]{ "REPORTDATE", stockCode+"报告年度" });
-			mapItems = list.toArray(new String[][] {});
+			mapItems = (String[][]) list.toArray(new String[][] {});
 			int rowId = 0;
 			CellStyle yiStyle = workbook.createCellStyle();
 			yiStyle.setDataFormat(format.getFormat("0!.00,,\"亿\"")); 
@@ -305,13 +297,16 @@ public class ScoreApplicationTests3 {
 		String outputFile = "gz.xlsx".replace(".xlsx", ".bak.xlsx");
 		FileOutputStream outputStream = new FileOutputStream(outputFile);
 		workbook.write(outputStream);
+		workbook.write(out);
 		outputStream.close();
 		workbook.close();
 
 		System.out.println(new File(outputFile).getAbsolutePath());
 		System.out.println("");
 		System.out.println("Report generated: " + outputFile);
+		
+		return workbook;
 
+	
 	}
-
 }
