@@ -6,20 +6,25 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.hssf.usermodel.HSSFName;
+import org.apache.poi.hssf.util.CellReference;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.ss.usermodel.Name;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.util.AreaReference;
 import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +45,9 @@ public class ScoreApplicationTests3 {
 	private JdbcTemplate jdbc;
 
 	@Test
-	void contextLoads() throws IOException, EncryptedDocumentException, InvalidFormatException {
+	void contextLoads() throws Exception {
 
-		String stockCode = "sz000876";
+		String stockCode = "sh600031";
 		String[][] zcfzb = new String[][] { 
 				{ "MONETARYFUND", "&ensp;&ensp;&ensp;&ensp;货币资金" },
 				{ "SETTLEMENTPROVISION", "&ensp;&ensp;&ensp;&ensp;结算备付金" },
@@ -209,10 +214,11 @@ public class ScoreApplicationTests3 {
 		tabMap.put("资产负债表", "zcfzb");
 		tabMap.put("利润表", "lrb");
 		tabMap.put("现金流量表", "xjllb");
-		InputStream inputStream = this.getClass().getResourceAsStream("/gz.xlsx");
+		//InputStream inputStream = this.getClass().getResourceAsStream("/gz.xlsx");
 
 		// String
 		String excelTemplatePath="../electron-suspension/gz.tpl.xlsx";
+		excelTemplatePath="/Users/alexwang/Downloads/云南白药sz000538.xlsx";
 		final FileInputStream inputStream2 = new FileInputStream(new File(excelTemplatePath));
 		final Workbook workbook = WorkbookFactory.create(inputStream2);
 		DataFormat format = workbook.createDataFormat();
@@ -300,7 +306,30 @@ public class ScoreApplicationTests3 {
 		// System.out.println(formulaCell.getNumericCellValue());
 		// System.out.println(evaluator.evaluate(formulaCell).getNumberValue());
 
-		inputStream.close();
+	     //Name name = workbook.getName("mid");   //This is core code 
+	     List<? extends Name> names = workbook.getAllNames();
+	     
+	     Map<String,Object> rowMap = new LinkedHashMap<String,Object>();
+	     rowMap.put("code", stockCode);
+	     for(Name name:names)
+	        if (name != null) {
+	            
+	         try{
+	            CellReference cellReference = new CellReference(name.getRefersToFormula());
+	            Sheet sheet = workbook.getSheet(cellReference.getSheetName());
+	            Row row = sheet.getRow(cellReference.getRow());
+	            Cell cell = row.getCell(cellReference.getCol());
+	            double val = evaluator.evaluate(cell).getNumberValue();
+				System.out.println(name.getNameName()+":"+val);
+	            rowMap.put(name.getNameName(), val);   
+	            }catch(Exception e) {
+	            	continue;
+	            }
+	            
+	        }
+        
+	     DbUtil.saveObj(jdbc, "excel_gz", rowMap);
+		inputStream2.close();
 
 		String outputFile = "gz.xlsx".replace(".xlsx", ".bak.xlsx");
 		FileOutputStream outputStream = new FileOutputStream(outputFile);
