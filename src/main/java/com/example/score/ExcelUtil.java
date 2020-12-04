@@ -227,10 +227,10 @@ public final class ExcelUtil {
 		tabMap.put("资产负债表", "zcfzb");
 		tabMap.put("利润表", "lrb");
 		tabMap.put("现金流量表", "xjllb");
-		InputStream inputStream = ExcelUtil.class.getClass().getResourceAsStream("/gz.xlsx");
+		//InputStream inputStream = ExcelUtil.class.getClass().getResourceAsStream("/gz.xlsx");
 
 		// String
-		String excelTemplatePath="../electron-suspension/gz.tpl.xlsx";
+		String excelTemplatePath="../electron-app/gz.tpl.xlsx";
 		final FileInputStream inputStream2 = new FileInputStream(new File(excelTemplatePath));
 		final Workbook workbook = WorkbookFactory.create(inputStream2);
 		DataFormat format = workbook.createDataFormat();
@@ -322,7 +322,7 @@ public final class ExcelUtil {
 		// System.out.println(formulaCell.getNumericCellValue());
 		// System.out.println(evaluator.evaluate(formulaCell).getNumberValue());
 
-		inputStream.close();
+		//inputStream.close();
 
 		String outputFile = "gz.xlsx".replace(".xlsx", ".bak.xlsx");
 		FileOutputStream outputStream = new FileOutputStream(outputFile);

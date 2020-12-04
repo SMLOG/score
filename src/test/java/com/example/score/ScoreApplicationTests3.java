@@ -217,8 +217,9 @@ public class ScoreApplicationTests3 {
 		//InputStream inputStream = this.getClass().getResourceAsStream("/gz.xlsx");
 
 		// String
-		String excelTemplatePath="../electron-suspension/gz.tpl.xlsx";
-		excelTemplatePath="/Users/alexwang/Downloads/祁连山sh600720.xlsx";
+		String excelTemplatePath="../electron-app/gz.tpl.xlsx";
+		//excelTemplatePath="/Users/alexwang/Downloads/祁连山sh600720.xlsx";
+		System.out.println(new File(excelTemplatePath).getAbsolutePath());
 		final FileInputStream inputStream2 = new FileInputStream(new File(excelTemplatePath));
 		final Workbook workbook = WorkbookFactory.create(inputStream2);
 		DataFormat format = workbook.createDataFormat();
