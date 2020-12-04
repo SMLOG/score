@@ -21,7 +21,8 @@ public class DbUtil {
 				sb.append("`" + key + "` varchar(10) default null,");
 			}
 		}
-		sb.append(" PRIMARY KEY (`id`)");
+		sb.append(" PRIMARY KEY (`id`) ")
+		.append(", UNIQUE KEY `index_unique` (`code`)");
 		sb.append(") ENGINE=InnoDB DEFAULT CHARSET=utf8;");
 		try {
 			System.out.println(sb.toString());
@@ -42,7 +43,7 @@ public class DbUtil {
 
 		try {
 
-			sb.append(" insert into " + tableName + " (");
+			sb.append(" replace into " + tableName + " (");
 
 			for (String key : obj.keySet()) {
 				sb.append(key).append(",");

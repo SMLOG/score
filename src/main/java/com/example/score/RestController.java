@@ -36,7 +36,7 @@ public class RestController {
 	   public String excel(@Autowired HttpServletResponse response,
 			   @RequestParam(name="code",required=true) String code,
 			   @RequestParam(name="name",required=false) String name
-			   ) throws EncryptedDocumentException, InvalidFormatException, IOException {
+			   ) throws Exception {
 		   
 		   String fileName =(name!=null &&name.trim().length()>0?name.trim():"")+code+".xlsx";
 		   fileName=new String(fileName.getBytes("UTF-8"), "ISO8859-1");

@@ -218,7 +218,7 @@ public class ScoreApplicationTests3 {
 
 		// String
 		String excelTemplatePath="../electron-suspension/gz.tpl.xlsx";
-		excelTemplatePath="/Users/alexwang/Downloads/云南白药sz000538.xlsx";
+		excelTemplatePath="/Users/alexwang/Downloads/祁连山sh600720.xlsx";
 		final FileInputStream inputStream2 = new FileInputStream(new File(excelTemplatePath));
 		final Workbook workbook = WorkbookFactory.create(inputStream2);
 		DataFormat format = workbook.createDataFormat();
@@ -307,28 +307,9 @@ public class ScoreApplicationTests3 {
 		// System.out.println(evaluator.evaluate(formulaCell).getNumberValue());
 
 	     //Name name = workbook.getName("mid");   //This is core code 
-	     List<? extends Name> names = workbook.getAllNames();
+		ExcelUtil.extractValueFromExcelToDB(jdbc,stockCode, workbook);
 	     
-	     Map<String,Object> rowMap = new LinkedHashMap<String,Object>();
-	     rowMap.put("code", stockCode);
-	     for(Name name:names)
-	        if (name != null) {
-	            
-	         try{
-	            CellReference cellReference = new CellReference(name.getRefersToFormula());
-	            Sheet sheet = workbook.getSheet(cellReference.getSheetName());
-	            Row row = sheet.getRow(cellReference.getRow());
-	            Cell cell = row.getCell(cellReference.getCol());
-	            double val = evaluator.evaluate(cell).getNumberValue();
-				System.out.println(name.getNameName()+":"+val);
-	            rowMap.put(name.getNameName(), val);   
-	            }catch(Exception e) {
-	            	continue;
-	            }
-	            
-	        }
-        
-	     DbUtil.saveObj(jdbc, "excel_gz", rowMap);
+	     
 		inputStream2.close();
 
 		String outputFile = "gz.xlsx".replace(".xlsx", ".bak.xlsx");
@@ -342,5 +323,7 @@ public class ScoreApplicationTests3 {
 		System.out.println("Report generated: " + outputFile);
 
 	}
+
+
 
 }

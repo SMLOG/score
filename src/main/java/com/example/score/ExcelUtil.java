@@ -10,16 +10,19 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.hssf.util.CellReference;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.ss.usermodel.Name;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -29,8 +32,33 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public final class ExcelUtil {
 
 
+	public static void extractValueFromExcelToDB(JdbcTemplate jdbc,String stockCode, final Workbook workbook)
+			throws Exception {
+		List<? extends Name> names = workbook.getAllNames();
+		FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
 
-	public static Workbook generateExcel(String stockCode,JdbcTemplate jdbcTemplate,OutputStream out) throws EncryptedDocumentException, InvalidFormatException, IOException {
+	     Map<String,Object> rowMap = new LinkedHashMap<String,Object>();
+	     rowMap.put("code", stockCode);
+	     for(Name name:names)
+	        if (name != null) {
+	            
+	         try{
+	            CellReference cellReference = new CellReference(name.getRefersToFormula());
+	            Sheet sheet = workbook.getSheet(cellReference.getSheetName());
+	            Row row = sheet.getRow(cellReference.getRow());
+	            Cell cell = row.getCell(cellReference.getCol());
+	            double val = evaluator.evaluate(cell).getNumberValue();
+				System.out.println(name.getNameName()+":"+val);
+	            rowMap.put(name.getNameName(), val);   
+	            }catch(Exception e) {
+	            	continue;
+	            }
+	            
+	        }
+        
+	     DbUtil.saveObj(jdbc, "excel_gz", rowMap);
+	}
+	public static Workbook generateExcel(String stockCode,JdbcTemplate jdbcTemplate,OutputStream out) throws Exception {
 
 
 		String[][] zcfzb = new String[][] { 
@@ -271,7 +299,9 @@ public final class ExcelUtil {
 		}
 
 		workbook.setForceFormulaRecalculation(true);
-		FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
+		ExcelUtil.extractValueFromExcelToDB(jdbcTemplate,stockCode, workbook);
+
+		//FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
 		 //Cell aCell = workbook.getSheetAt(0).getRow(32).getCell('B'-'A');
 		// System.out.println(aCell.getStringCellValue());
 		 
