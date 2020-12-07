@@ -32,7 +32,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public final class ExcelUtil {
 
 
-	public static void extractValueFromExcelToDB(JdbcTemplate jdbc,String stockCode, final Workbook workbook)
+	public static void extractValueFromExcelToDB(JdbcTemplate jdbc,String stockCode,Map<String,String>vars, final Workbook workbook)
 			throws Exception {
 		List<? extends Name> names = workbook.getAllNames();
 		FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
@@ -47,9 +47,17 @@ public final class ExcelUtil {
 	            Sheet sheet = workbook.getSheet(cellReference.getSheetName());
 	            Row row = sheet.getRow(cellReference.getRow());
 	            Cell cell = row.getCell(cellReference.getCol());
-	            double val = evaluator.evaluate(cell).getNumberValue();
-				System.out.println(name.getNameName()+":"+val);
-	            rowMap.put(name.getNameName(), val);   
+	            
+	            if(name.getNameName().startsWith("_")) {
+	            	
+	            	cell.setCellValue(vars.get(name.getNameName()));
+	            	
+	            }else {
+		            double val = evaluator.evaluate(cell).getNumberValue();
+					System.out.println(name.getNameName()+":"+val);
+		            rowMap.put(name.getNameName(), val);  
+	            }
+ 
 	            }catch(Exception e) {
 	            	continue;
 	            }
@@ -58,7 +66,7 @@ public final class ExcelUtil {
         
 	     DbUtil.saveObj(jdbc, "excel_gz", rowMap);
 	}
-	public static Workbook generateExcel(String stockCode,JdbcTemplate jdbcTemplate,OutputStream out) throws Exception {
+	public static Workbook generateExcel(String stockCode,String name,JdbcTemplate jdbcTemplate,OutputStream out) throws Exception {
 
 
 		String[][] zcfzb = new String[][] { 
@@ -230,7 +238,7 @@ public final class ExcelUtil {
 		//InputStream inputStream = ExcelUtil.class.getClass().getResourceAsStream("/gz.xlsx");
 
 		// String
-		String excelTemplatePath="../electron-app/gz.tpl.xlsx";
+		String excelTemplatePath="../electron-app/excel/gz.tpl.org.xlsx";
 		final FileInputStream inputStream2 = new FileInputStream(new File(excelTemplatePath));
 		final Workbook workbook = WorkbookFactory.create(inputStream2);
 		DataFormat format = workbook.createDataFormat();
@@ -299,7 +307,10 @@ public final class ExcelUtil {
 		}
 
 		workbook.setForceFormulaRecalculation(true);
-		ExcelUtil.extractValueFromExcelToDB(jdbcTemplate,stockCode, workbook);
+		Map<String,String> varsMap = new HashMap<String,String>();
+		varsMap.put("_code", stockCode);
+		varsMap.put("_name", name);
+		ExcelUtil.extractValueFromExcelToDB(jdbcTemplate,stockCode, varsMap,workbook);
 
 		//FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
 		 //Cell aCell = workbook.getSheetAt(0).getRow(32).getCell('B'-'A');
