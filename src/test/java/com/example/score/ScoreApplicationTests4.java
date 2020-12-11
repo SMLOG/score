@@ -47,11 +47,14 @@ public class ScoreApplicationTests4 {
 	@Test
 	void contextLoads() throws Exception {
 		
-		List<Map<String, Object>> result = jdbc.queryForList("select * from hq where pe_ttm>0");
+	/*List<Map<String, Object>> result = jdbc.queryForList("select * from hq where pe_ttm>0 and pe_ttm<50");
      for(Map<String, Object> item:result) {
- 		HttpUtil.genReportExcel((String) item.get("code"),(String) item.get("name"), jdbc);
+    	 System.out.println(item.get("code"));
 
-     }
+     }*/
+     
+		HttpUtil.genReportExcel("sh600559", jdbc,null);
+
 	}
 
 

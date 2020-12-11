@@ -47,7 +47,8 @@ public class RestController {
 	        OutputStream outputStream = null;
             outputStream = response.getOutputStream();
 
-	        ExcelUtil.generateExcel(code, jdbcTemplate,outputStream);
+	        //ExcelUtil.generateExcel(code, jdbcTemplate,outputStream);
+			HttpUtil.genReportExcel(code, jdbcTemplate,outputStream);
 
 		   return null;
 	   }
